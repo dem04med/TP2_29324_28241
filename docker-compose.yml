@@ -68,6 +68,25 @@ services:
     networks:
       - xmlrpc_network
 
+  grpc_server:
+    build: ./server
+    container_name: grpc_server
+    restart: always
+    depends_on:
+      - mongo
+    environment:
+      MONGO_HOST: xmlrpc_mongodb
+      MONGO_USER: user
+      MONGO_PASS: password
+      MONGO_DB: xmlrpc_db
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./server:/app
+    command: ["python", "grpc_server.py"]
+    networks:
+      - xmlrpc_network
+
 volumes:
   mongo_data:
 

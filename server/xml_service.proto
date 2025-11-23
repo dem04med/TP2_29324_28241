@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package xmlservice;
+
+// Mensagens vazias
+message Empty {}
+
+// Requisição para armazenar XML
+message StoreXMLRequest {
+  string filename = 1;
+  string xml_content = 2;
+}
+
+// Resposta de armazenamento
+message StoreXMLResponse {
+  bool success = 1;
+  string message = 2;
+  string xml_id = 3;
+}
+
+// Requisição para recuperar XML
+message GetXMLRequest {
+  string xml_id = 1;
+}
+
+// Resposta com XML
+message XMLResponse {
+  bool success = 1;
+  string filename = 2;
+  string xml_content = 3;
+  string message = 4;
+}
+
+// Requisição XPath
+message XPathRequest {
+  string xml_id = 1;
+  string expression = 2;
+}
+
+// Resposta XPath
+message XPathResponse {
+  bool success = 1;
+  repeated string results = 2;
+  string message = 3;
+}
+
+// Requisição para listar XMLs
+message ListXMLResponse {
+  bool success = 1;
+  repeated XMLFileInfo files = 2;
+  int32 count = 3;
+}
+
+message XMLFileInfo {
+  string xml_id = 1;
+  string filename = 2;
+  string created_at = 3;
+}
+
+// Requisição conversão XML->JSON
+message ConvertToJSONRequest {
+  string xml_id = 1;
+}
+
+message ConvertToJSONResponse {
+  bool success = 1;
+  string json_content = 2;
+  string message = 3;
+}
+
+// Serviço gRPC para operações XML
+service XMLService {
+  
+  // Armazena um documento XML no MongoDB
+  rpc StoreXML(StoreXMLRequest) returns (StoreXMLResponse);
+  
+  // Recupera um documento XML pelo ID
+  rpc GetXML(GetXMLRequest) returns (XMLResponse);
+  
+  // Lista todos os XMLs armazenados
+  rpc ListXMLs(Empty) returns (ListXMLResponse);
+  
+  // Executa consulta XPath sobre XML armazenado
+  rpc QueryXPath(XPathRequest) returns (XPathResponse);
+  
+  // Converte XML armazenado para JSON
+  rpc ConvertToJSON(ConvertToJSONRequest) returns (ConvertToJSONResponse);
+  
+  // Ping para testar conectividade
+  rpc Ping(Empty) returns (XMLResponse);
+}
