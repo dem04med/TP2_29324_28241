@@ -178,14 +178,28 @@ class XMLRPCServerHandler:
             logger.error(f"Erro no processo de conversão JSON para XML: {e}")
             return {"success": False, "error": str(e)}
     
-    def validate_xml_content(self, xml_content, schema_filename=None):
-        """Valida conteúdo XML"""
+    def validate_xml_content(self, xml_id, schema_filename=None):
+        """Valida conteúdo XML armazenado"""
         try:
+            # Recuperar XML
+            xml_result = self.retrieve_xml(xml_id)
+            if not xml_result["success"]:
+                return xml_result
+            
+            xml_content = xml_result["data"]["content"]
+            
+            # Validar XML
             schema_path = None
             if schema_filename:
                 schema_path = os.path.join(self.xml_converter.xml_schemas_path, schema_filename)
             
             is_valid, validation_result = self.xml_converter.validate_xml(xml_content, schema_path)
+            
+            # Log da validação
+            if is_valid:
+                self._log_conversion(xml_id, "xml_validation", "success")
+            else:
+                self._log_conversion(xml_id, "xml_validation", "warning", validation_result)
             
             return {
                 "success": True,
@@ -218,18 +232,32 @@ class XMLRPCServerHandler:
             logger.error(f"Erro no processo de conversão CSV para XML: {e}")
             return {"success": False, "error": str(e)}
     
-    def generate_xsd_schema(self, xml_content, target_namespace="http://kaggle-data.local"):
-        """Gera schema XSD a partir de XML"""
+    def generate_xsd_schema(self, xml_id, target_namespace="http://kaggle-data.local"):
+        """Gera schema XSD a partir de XML armazenado"""
         try:
+            # Recuperar XML
+            xml_result = self.retrieve_xml(xml_id)
+            if not xml_result["success"]:
+                return xml_result
+            
+            xml_content = xml_result["data"]["content"]
+            
+            # Gerar XSD
             success, result = self.xml_converter.generate_xsd_from_xml(xml_content, target_namespace)
             
             if success:
+                # Log da conversão
+                self._log_conversion(xml_id, "xsd_generation", "success")
+                
                 return {
                     "success": True,
                     "xsd_content": result,
                     "message": "Schema XSD gerado com sucesso"
                 }
             else:
+                # Log do erro
+                self._log_conversion(xml_id, "xsd_generation", "error", result)
+                
                 return {
                     "success": False,
                     "error": f"Erro na geração XSD: {result}"

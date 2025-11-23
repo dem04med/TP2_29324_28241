@@ -60,6 +60,11 @@ class XMLServiceStub(object):
                 request_serializer=xml__service__pb2.ConvertToJSONRequest.SerializeToString,
                 response_deserializer=xml__service__pb2.ConvertToJSONResponse.FromString,
                 _registered_method=True)
+        self.ValidateXML = channel.unary_unary(
+                '/xmlservice.XMLService/ValidateXML',
+                request_serializer=xml__service__pb2.ValidateXMLRequest.SerializeToString,
+                response_deserializer=xml__service__pb2.ValidateXMLResponse.FromString,
+                _registered_method=True)
         self.Ping = channel.unary_unary(
                 '/xmlservice.XMLService/Ping',
                 request_serializer=xml__service__pb2.Empty.SerializeToString,
@@ -106,6 +111,13 @@ class XMLServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ValidateXML(self, request, context):
+        """Valida XML contra schema XSD
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def Ping(self, request, context):
         """Ping para testar conectividade
         """
@@ -140,6 +152,11 @@ def add_XMLServiceServicer_to_server(servicer, server):
                     servicer.ConvertToJSON,
                     request_deserializer=xml__service__pb2.ConvertToJSONRequest.FromString,
                     response_serializer=xml__service__pb2.ConvertToJSONResponse.SerializeToString,
+            ),
+            'ValidateXML': grpc.unary_unary_rpc_method_handler(
+                    servicer.ValidateXML,
+                    request_deserializer=xml__service__pb2.ValidateXMLRequest.FromString,
+                    response_serializer=xml__service__pb2.ValidateXMLResponse.SerializeToString,
             ),
             'Ping': grpc.unary_unary_rpc_method_handler(
                     servicer.Ping,
@@ -283,6 +300,33 @@ class XMLService(object):
             '/xmlservice.XMLService/ConvertToJSON',
             xml__service__pb2.ConvertToJSONRequest.SerializeToString,
             xml__service__pb2.ConvertToJSONResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ValidateXML(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/xmlservice.XMLService/ValidateXML',
+            xml__service__pb2.ValidateXMLRequest.SerializeToString,
+            xml__service__pb2.ValidateXMLResponse.FromString,
             options,
             channel_credentials,
             insecure,

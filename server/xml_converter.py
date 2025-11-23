@@ -159,7 +159,7 @@ class XMLConverter:
             return False, str(e)
     
     def csv_to_xml(self, csv_content, root_element="dataset", row_element="record"):
-        """Converte CSV (dados Kaggle) para XML estruturado"""
+        """Converte CSV para XML estruturado"""
         try:
             # Ler CSV usando pandas para melhor manipulação
             df = pd.read_csv(StringIO(csv_content))
@@ -223,7 +223,7 @@ class XMLConverter:
         return clean_name.lower()
     
     def generate_xsd_from_xml(self, xml_content, target_namespace="http://kaggle-data.local"):
-        """Gera schema XSD básico a partir de XML"""
+        """Gera schema XSD a partir de XML"""
         try:
             root = ET.fromstring(xml_content)
             
@@ -292,6 +292,15 @@ class XMLConverter:
             doc = etree.fromstring(xml_content.encode('utf-8'))
             results = doc.xpath(xpath_expression)
             
+            # Verificar se o resultado é um valor escalar (número, booleano, string)
+            if isinstance(results, (int, float, bool, str)):
+                logger.info(f"XPath query executada: resultado escalar = {results}")
+                return True, {
+                    'xpath': xpath_expression,
+                    'results_count': 1,
+                    'results': [results]
+                }
+            
             # Converter resultados para formato serializável
             formatted_results = []
             for result in results:
@@ -319,16 +328,12 @@ class XMLConverter:
     def query_xml_xquery(self, xml_content, xquery_expression):
         """Executa consulta XQuery sobre XML (simulada com XPath)"""
         try:
-            # XQuery completo precisaria de processador dedicado
-            # Aqui implementamos queries XQuery comuns com XPath
-            
             xquery_to_xpath_map = {
                 'count(//record)': 'count(//record)',
                 'distinct-values(//*/text())': '//*[not(preceding::*[text()=current()/text()])]/text()',
                 'for $r in //record return $r': '//record'
             }
             
-            # Tentar mapear XQuery comum para XPath
             xpath_expr = xquery_to_xpath_map.get(xquery_expression, xquery_expression)
             
             success, result = self.query_xml_xpath(xml_content, xpath_expr)

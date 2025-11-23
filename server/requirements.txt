@@ -3,7 +3,5 @@ lxml
 pandas
 grpcio
 grpcio-tools
-graphene
 flask
-flask-graphql
 flask-cors

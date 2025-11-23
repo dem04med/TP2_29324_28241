@@ -48,26 +48,6 @@ services:
     networks:
       - xmlrpc_network
 
-  graphql_server:
-    build: ./server
-    container_name: graphql_server
-    restart: always
-    depends_on:
-      - mongo
-      - xmlrpc_server
-    environment:
-      MONGO_HOST: xmlrpc_mongodb
-      MONGO_USER: user
-      MONGO_PASS: password
-      MONGO_DB: xmlrpc_db
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./server:/app
-    command: ["python", "graphql_server.py"]
-    networks:
-      - xmlrpc_network
-
   grpc_server:
     build: ./server
     container_name: grpc_server

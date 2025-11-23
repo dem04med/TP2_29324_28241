@@ -264,8 +264,50 @@ class XMLServiceServicer(pb2_grpc.XMLServiceServicer):
                 json_content="",
                 message=str(e)
             )
-
-
+    
+    def ValidateXML(self, request, context):
+        """Valida XML contra schema XSD"""
+        try:
+            if not self.db:
+                return pb2.ValidateXMLResponse(
+                    success=False,
+                    is_valid=False,
+                    validation_result="",
+                    message="Conexão com MongoDB não disponível"
+                )
+            
+            # Recuperar XML
+            document = self.db.retrieve_xml(request.xml_id)
+            if not document:
+                return pb2.ValidateXMLResponse(
+                    success=False,
+                    is_valid=False,
+                    validation_result="",
+                    message=f"XML com ID {request.xml_id} não encontrado"
+                )
+            
+            # Validar XML
+            schema_path = request.schema_path if request.schema_path else None
+            is_valid, validation_result = self.xml_converter.validate_xml(
+                document['content'], 
+                schema_path
+            )
+            
+            return pb2.ValidateXMLResponse(
+                success=True,
+                is_valid=is_valid,
+                validation_result=str(validation_result),
+                message="Validação realizada com sucesso"
+            )
+                
+        except Exception as e:
+            logger.error(f"gRPC: Erro na validação XML: {e}")
+            return pb2.ValidateXMLResponse(
+                success=False,
+                is_valid=False,
+                validation_result="",
+                message=str(e)
+            )
 def serve():
     """Inicia o servidor gRPC"""
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

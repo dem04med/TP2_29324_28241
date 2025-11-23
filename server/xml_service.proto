@@ -68,6 +68,19 @@ message ConvertToJSONResponse {
   string message = 3;
 }
 
+// Requisição validação XML
+message ValidateXMLRequest {
+  string xml_id = 1;
+  string schema_path = 2;
+}
+
+message ValidateXMLResponse {
+  bool success = 1;
+  bool is_valid = 2;
+  string validation_result = 3;
+  string message = 4;
+}
+
 // Serviço gRPC para operações XML
 service XMLService {
   
@@ -85,6 +98,9 @@ service XMLService {
   
   // Converte XML armazenado para JSON
   rpc ConvertToJSON(ConvertToJSONRequest) returns (ConvertToJSONResponse);
+  
+  // Valida XML contra schema XSD
+  rpc ValidateXML(ValidateXMLRequest) returns (ValidateXMLResponse);
   
   // Ping para testar conectividade
   rpc Ping(Empty) returns (XMLResponse);
