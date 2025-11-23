@@ -18,7 +18,7 @@ class XMLRPCServerHandler:
         self.init_database()
     
     def init_database(self):
-        """Inicializa a conexão com a base de dados e cria as tabelas"""
+        """Inicializa a conexão com a base de dados MongoDB e cria índices"""
         max_retries = 10
         retry_delay = 5
         
@@ -26,8 +26,8 @@ class XMLRPCServerHandler:
             try:
                 self.db = get_db_connection()
                 if self.db:
-                    self.db.create_tables()
-                    logger.info("Base de dados inicializada com sucesso")
+                    self.db.create_indexes()
+                    logger.info("Base de dados MongoDB inicializada com sucesso")
                     return
                 else:
                     logger.warning(f"Tentativa {attempt + 1} de conexão falhou")
@@ -46,7 +46,7 @@ class XMLRPCServerHandler:
     
     def get_server_status(self):
         """Retorna o status do servidor"""
-        db_status = "conectado" if self.db and self.db.connection else "desconectado"
+        db_status = "conectado" if self.db and self.db.client else "desconectado"
         return {
             "status": "ativo",
             "timestamp": datetime.now().isoformat(),
@@ -67,21 +67,15 @@ class XMLRPCServerHandler:
                     "error": f"XML inválido: {validation_result}"
                 }
             
-            # Inserir na base de dados
-            query = """
-                INSERT INTO xml_data (filename, content) 
-                VALUES (%s, %s) 
-                RETURNING id
-            """
-            result = self.db.execute_query(query, (filename, xml_content))
+            # Inserir na base de dados MongoDB
+            xml_id = self.db.insert_xml(filename, xml_content)
             
-            if result:
-                xml_id = result[0]['id'] if isinstance(result, list) and len(result) > 0 else 1
+            if xml_id:
                 logger.info(f"XML armazenado com ID: {xml_id}")
                 return {
                     "success": True, 
                     "message": f"XML armazenado com sucesso",
-                    "xml_id": int(xml_id)
+                    "xml_id": xml_id
                 }
             else:
                 return {"success": False, "error": "Erro ao inserir na base de dados"}
@@ -91,19 +85,17 @@ class XMLRPCServerHandler:
             return {"success": False, "error": str(e)}
     
     def retrieve_xml(self, xml_id):
-        """Recupera XML da base de dados pelo ID"""
+        """Recupera XML da base de dados MongoDB pelo ID"""
         try:
             if not self.db:
                 return {"success": False, "error": "Conexão com base de dados não disponível"}
             
-            query = "SELECT * FROM xml_data WHERE id = %s"
-            result = self.db.execute_query(query, (xml_id,))
+            document = self.db.retrieve_xml(xml_id)
             
-            if result and len(result) > 0:
-                xml_data = dict(result[0])
+            if document:
                 return {
                     "success": True,
-                    "data": xml_data
+                    "data": document
                 }
             else:
                 return {"success": False, "error": f"XML com ID {xml_id} não encontrado"}
@@ -113,19 +105,12 @@ class XMLRPCServerHandler:
             return {"success": False, "error": str(e)}
     
     def list_xml_files(self):
-        """Lista todos os arquivos XML armazenados"""
+        """Lista todos os arquivos XML armazenados no MongoDB"""
         try:
             if not self.db:
                 return {"success": False, "error": "Conexão com base de dados não disponível"}
             
-            query = """
-                SELECT id, filename, created_at, updated_at 
-                FROM xml_data 
-                ORDER BY created_at DESC
-            """
-            result = self.db.execute_query(query)
-            
-            files = [dict(row) for row in result] if result else []
+            files = self.db.list_xml_files()
             
             return {
                 "success": True,
@@ -325,14 +310,10 @@ class XMLRPCServerHandler:
             return {"success": False, "error": str(e)}
     
     def _log_conversion(self, xml_data_id, conversion_type, status, error_message=None):
-        """Registra log de conversão na base de dados"""
+        """Registra log de conversão no MongoDB"""
         try:
             if self.db:
-                query = """
-                    INSERT INTO conversion_log (xml_data_id, conversion_type, status, error_message) 
-                    VALUES (%s, %s, %s, %s)
-                """
-                self.db.execute_query(query, (xml_data_id, conversion_type, status, error_message))
+                self.db.log_conversion(xml_data_id, conversion_type, status, error_message)
                 
         except Exception as e:
             logger.error(f"Erro ao registrar log: {e}")
