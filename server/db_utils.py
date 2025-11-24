@@ -117,6 +117,8 @@ class DatabaseConnection:
                 grid_out = self.fs.get(gridfs_id)
                 content = grid_out.read().decode('utf-8')
                 document['content'] = content
+                # Converte gridfs_id para string
+                document['gridfs_id'] = str(gridfs_id)
             
             # Converte ObjectId para string para serialização
             document['_id'] = str(document['_id'])

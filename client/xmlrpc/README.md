@@ -91,17 +91,29 @@ python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "//record[last()]/
 ### Exemplos com Filtros
 
 ```powershell
-# Vendas por país (ex: Portugal)
-python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "count(//record[country='Portugal'])"
+# Vendas por país (ex: Canada) - contar
+python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "count(//record[country='Canada'])"
 
-# Vendas por categoria de produto
+# Vendas por país - listar primeiros 5 países
+python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "//record[position() <= 5]/country/text()"
+
+# Vendas por categoria de produto - contar
 python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "count(//record[product_category='Bikes'])"
 
-# Vendas por género
+# Listar primeiros 5 produtos da categoria Bikes
+python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "//record[product_category='Bikes'][position() <= 5]/product/text()"
+
+# Vendas por género - contar
 python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "count(//record[customer_gender='F'])"
 
-# Filtros combinados
-python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "count(//record[country='Portugal' and product_category='Bikes'])"
+# Listar idades das primeiras 10 clientes femininas
+python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "//record[customer_gender='F'][position() <= 10]/customer_age/text()"
+
+# Filtros combinados - contar
+python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "count(//record[country='Canada' and product_category='Bikes'])"
+
+# Listar produtos vendidos no Canada na categoria Bikes (primeiros 5)
+python client/xmlrpc/client_query.py 69238907fb662cc0e919c437 "//record[country='Canada' and product_category='Bikes'][position() <= 5]/product/text()"
 ```
 
 ### Exemplos com Agregações
